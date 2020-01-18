@@ -14,8 +14,6 @@ import (
 	"go.starlark.net/starlarkstruct"
 )
 
-var attrReplace = regexp.MustCompile(`@(\w+)\s?`)
-
 func init() {
 	resolve.AllowNestedDef = true
 	resolve.AllowLambda = true
@@ -92,8 +90,12 @@ func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return d.DecodeElement((*node)(n), &start)
 }
 
+var attrReplace = regexp.MustCompile(`@(\w+)\b`)
+var childReplace = regexp.MustCompile(`/(\w+)\b`)
+
 func Eval(reader io.Reader, src string) (interface{}, error) {
 	src = attrReplace.ReplaceAllString(src, `attr("$1")`)
+	src = childReplace.ReplaceAllString(src, `children("$1")`)
 	log.Infof(src)
 	thread := &starlark.Thread{}
 	globals, err := starlark.ExecFile(thread, "filters.star", nil, starlark.StringDict{
