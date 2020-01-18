@@ -12,6 +12,6 @@ func TestGetAttr(t *testing.T) {
 	assert.Equal(t, true, true)
 	res, err := Eval(strings.NewReader(`<hello answer="42"/>`), `@answer`)
 	if assert.NoError(t, err) {
-		assert.Equal(t, starlark.MakeInt(42), res)
+		assert.Equal(t, starlark.String("42"), res)
 	}
 }

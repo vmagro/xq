@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 	"os"
 	"regexp"
@@ -36,6 +37,54 @@ type Node struct {
 	Nodes   []Node     `xml:",any"`
 }
 
+func (n *Node) String() string {
+	bytes, err := xml.Marshal(n)
+	if err != nil {
+		if n.XMLName.Space != "" {
+			return fmt.Sprintf("<%s:%s />", n.XMLName.Space, n.XMLName.Local)
+		}
+		return fmt.Sprintf("<%s />", n.XMLName.Local)
+	}
+	return string(bytes)
+}
+
+func (n *Node) Type() string {
+	return "Node"
+}
+
+func (n *Node) Freeze() {
+
+}
+
+func (n *Node) Truth() starlark.Bool {
+	return starlark.True
+}
+
+func (n *Node) Hash() (uint32, error) {
+	// TODO
+	return 0, nil
+}
+
+func (n *Node) Attr(name string) (starlark.Value, error) {
+	switch name {
+	case "attrs":
+		d := starlark.NewDict(len(n.Attrs))
+		for _, attr := range n.Attrs {
+			key := attr.Name.Local
+			if attr.Name.Space != "" {
+				key = attr.Name.Space + ":" + key
+			}
+			d.SetKey(starlark.String(key), starlark.String(attr.Value))
+		}
+		return d, nil
+	}
+	return nil, errors.Errorf("No attr '%s'", name)
+}
+
+func (n *Node) AttrNames() []string {
+	return []string{"attrs"}
+}
+
 func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	n.Attrs = start.Attr
 	type node Node
@@ -68,14 +117,7 @@ func Eval(reader io.Reader, src string) (interface{}, error) {
 		return starlark.Call(
 			thread,
 			res,
-			[]starlark.Value{
-				starlarkstruct.FromStringDict(
-					starlarkstruct.Default,
-					starlark.StringDict{
-						"attr": attrDict,
-					},
-				),
-			},
+			[]starlark.Value{&node},
 			nil,
 		)
 	}
