@@ -1,32 +1,33 @@
 package main
 
 import (
-	"fmt"
+	"io"
 	"os"
+	"regexp"
 
-	"github.com/antchfx/xmlquery"
-	"github.com/antchfx/xpath"
 	log "github.com/sirupsen/logrus"
+	"go.starlark.net/starlark"
 )
 
+var attrReplace = regexp.MustCompile(`@(\w+)\s?`)
+
 func main() {
-	doc, err := xmlquery.Parse(os.Stdin)
+	src := os.Args[1]
+	res, err := Eval(os.Stdin, src)
 	if err != nil {
 		log.Fatal(err)
 	}
-	expr, err := xpath.Compile(os.Args[1])
+	log.Infof("%+v", res)
+}
+
+func Eval(reader io.Reader, src string) (interface{}, error) {
+	src = attrReplace.ReplaceAllString(src, `attr("$1")`)
+	log.Infof(src)
+	thread := &starlark.Thread{}
+	res, err := starlark.Eval(thread, "", src, nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	res := expr.Evaluate(xmlquery.CreateXPathNavigator(doc))
-	switch v := res.(type) {
-	case bool:
-		fmt.Println(v)
-	case float64:
-		fmt.Println(v)
-	case string:
-		fmt.Println(v)
-	default:
-		fmt.Printf("No pretty-print supported: %+v\n", v)
-	}
+	log.Infof("%+v", res)
+	return nil, nil
 }
