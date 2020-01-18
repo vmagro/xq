@@ -1,11 +1,12 @@
 package main
 
 import (
-	"errors"
+	"encoding/xml"
 	"io"
 	"os"
 	"regexp"
 
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"go.starlark.net/resolve"
 	"go.starlark.net/starlark"
@@ -28,6 +29,20 @@ func main() {
 	log.Infof("%+v", res)
 }
 
+type Node struct {
+	XMLName xml.Name
+	Attrs   []xml.Attr `xml:"-"`
+	Content []byte     `xml:",innerxml"`
+	Nodes   []Node     `xml:",any"`
+}
+
+func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	n.Attrs = start.Attr
+	type node Node
+
+	return d.DecodeElement((*node)(n), &start)
+}
+
 func Eval(reader io.Reader, src string) (interface{}, error) {
 	src = attrReplace.ReplaceAllString(src, `attr("$1")`)
 	log.Infof(src)
@@ -39,6 +54,14 @@ func Eval(reader io.Reader, src string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	dec := xml.NewDecoder(reader)
+	node := Node{}
+	err = dec.Decode(&node)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to parse XML")
+	}
+
 	attrDict := starlark.NewDict(1)
 	attrDict.SetKey(starlark.String("answer"), starlark.MakeInt(42))
 	if res, ok := res.(starlark.Callable); ok {
