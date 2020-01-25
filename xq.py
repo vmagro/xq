@@ -3,13 +3,17 @@ import sys
 import xml.sax
 from dataclasses import dataclass, field
 from typing import Any, MutableSequence, Mapping
-from graphql import GraphQLSchema, GraphQLObjectType, GraphQLField, GraphQLString
+from graphql import (
+    GraphQLSchema,
+    GraphQLObjectType,
+    GraphQLField,
+    GraphQLString,
+)
 
 import filters
 import gql
 import strawberry
 from graphql.utilities.schema_printer import print_schema
-
 
 
 @dataclass(frozen=True)
@@ -45,7 +49,9 @@ def xq():
         query=GraphQLObjectType(
             name="Query",
             fields={
-                "hello": GraphQLField(GraphQLString, resolve=lambda obj, info: "world")
+                "hello": GraphQLField(
+                    GraphQLString, resolve=lambda obj, info: "world"
+                )
             },
         )
     )
@@ -57,13 +63,11 @@ def xq():
     #     name: str
     #     age: int
 
-
     # @strawberry.type
     # class Query:
     #     @strawberry.field
     #     def user(self, info) -> User:
     #         return User(name="Patrick", age=100)
-
 
     # schema = strawberry.Schema(query=Query)
     # print(schema)

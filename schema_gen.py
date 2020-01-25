@@ -22,7 +22,9 @@ def gen_field(elem: etree.Element) -> GraphQLField:
                     # TODO: just strings?
                     key: GraphQLField(
                         GraphQLString,
-                        resolve=(lambda key: lambda e, _info: e.attrib[key])(key),
+                        resolve=(lambda key: lambda e, _info: e.attrib[key])(
+                            key
+                        ),
                     )
                     for key in elem.attrib.keys()
                 },

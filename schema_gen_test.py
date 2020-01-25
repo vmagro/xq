@@ -13,7 +13,9 @@ from schema_gen import gen_field
 
 
 def query(field, querystr, elem):
-    schema = GraphQLSchema(query=GraphQLObjectType(name="Query", fields={"f": field},),)
+    schema = GraphQLSchema(
+        query=GraphQLObjectType(name="Query", fields={"f": field})
+    )
     print(print_schema(schema))
     return graphql_sync(schema, querystr, elem)
 
@@ -32,8 +34,10 @@ def test_attr_no_child():
     assert res.data["f"] == {"answer": "42", "to": "world"}
 
 
-def test_children():
-    e = etree.fromstring(r'<hello><child>text</child><other>blah</other></hello>')
+def test_text_children():
+    e = etree.fromstring(
+        r"<hello><child>text</child><other>blah</other></hello>"
+    )
     field = gen_field(e)
     res = query(field, " { f { child, other } }", e)
     assert res.data["f"] == {"child": "text", "other": "blah"}
