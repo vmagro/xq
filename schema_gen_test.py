@@ -33,7 +33,7 @@ def test_attr_no_child():
 
 
 def test_children():
-    e = etree.fromstring(r'<hello><child>text</child></hello>')
+    e = etree.fromstring(r'<hello><child>text</child><other>blah</other></hello>')
     field = gen_field(e)
-    res = query(field, " { f { child } }", e)
-    assert res.data["f"] == {"child": "text"}
+    res = query(field, " { f { child, other } }", e)
+    assert res.data["f"] == {"child": "text", "other": "blah"}

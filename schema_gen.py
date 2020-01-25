@@ -21,7 +21,8 @@ def gen_field(elem: etree.Element) -> GraphQLField:
                 fields={
                     # TODO: just strings?
                     key: GraphQLField(
-                        GraphQLString, resolve=(lambda key: lambda e, _info: e.attrib[key])(key)
+                        GraphQLString,
+                        resolve=(lambda key: lambda e, _info: e.attrib[key])(key),
                     )
                     for key in elem.attrib.keys()
                 },
@@ -31,12 +32,23 @@ def gen_field(elem: etree.Element) -> GraphQLField:
 
     # TODO: look for multiple children of the same tag and make it a list
     # TODO: look for single children and make it a direct child
+    def child_resolver(tag):
+        print(f"making child resolver for {tag}")
+
+        def _resolver(obj, _):
+            print(f"resolving {tag} with {obj}")
+            return obj.find(tag).text
+
+        return GraphQLField(GraphQLString, resolve=_resolver)
+
     return GraphQLField(
         GraphQLObjectType(
             name=elem.tag,
             fields={
-                child.tag: gen_field(child) for child in elem
-            }
+                # child.tag: gen_field(child) for child in elem
+                child.tag: child_resolver(child.tag)
+                for child in elem
+            },
         ),
         resolve=lambda e, _: e,
     )
