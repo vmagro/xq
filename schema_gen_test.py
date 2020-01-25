@@ -22,12 +22,14 @@ def test_gen_string_text():
     e = etree.fromstring(r"<hello>textchild</hello>")
     field = gen_field(e)
     res = query(field, " { f }", e)
+    print(res)
     assert res.data["f"] == "textchild"
 
 
 def test_gen_attr_no_child():
-    e = etree.fromstring(r'<hello answer="42"/>')
+    e = etree.fromstring(r'<hello answer="42" to="world"/>')
     field = gen_field(e)
-    res = query(field, " { f { answer } }", e)
+    res = query(field, " { f { answer, to } }", e)
     print(res)
-    assert res.data["f"]["answer"] == 42
+    assert res.data["f"] == {"answer": "42", "to": "world"}
+

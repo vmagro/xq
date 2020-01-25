@@ -12,14 +12,19 @@ def gen_field(elem: etree.Element) -> GraphQLField:
         print("No children and no attributes")
         # it might be a string, int, float or bool and will be disambiguated
         # later by the resolver
+        # return GraphQLField(GraphQLString, resolve=lambda e, _info: e.text)
         return GraphQLField(GraphQLString, resolve=lambda e, _info: e.text)
     if not len(elem) and elem.attrib:
-        return GraphQLObjectType(
-            name=elem.tag,
-            fields={
-                # TODO: just strings?
-                # key: GraphQLField(GraphQLString, resolve=lambda e, _info: e.attrib[key])
-                key: GraphQLField(GraphQLString, resolve=lambda e, _info: "test")
-                for key in elem.attrib.keys()
-            },
+        return GraphQLField(
+            GraphQLObjectType(
+                elem.tag,
+                lambda: {
+                    # TODO: just strings?
+                    key: GraphQLField(
+                        GraphQLString, resolve=(lambda key: lambda e, _info: e.attrib[key])(key)
+                    )
+                    for key in elem.attrib.keys()
+                },
+            ),
+            resolve=lambda e, _: e,
         )
