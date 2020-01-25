@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "528924d47c6b6e005df69c187f15587f640e665617a2e0f8abb9950322b0efc8"
+            "sha256": "f354009b66b78b05f02def765160bce2658359746a4299fe53b905d2b3e61485"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -36,6 +36,7 @@
                 "sha256:1bd80ea6674638959838ae4ae93da0a06bea3ebed775fd5a25fe6e71e3138f5e",
                 "sha256:4b35393a5713c1cb548579d79ce3364a8d9213bc186d74d81d2ba6f4babfe101"
             ],
+            "index": "pypi",
             "version": "==3.0.1"
         },
         "graphql-relay": {

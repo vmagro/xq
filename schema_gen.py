@@ -28,14 +28,14 @@ def gen_field(elem: etree.Element):
         class elemtype(graphene.ObjectType):
             class Meta:
                 name = elem.tag
-                fields = {
-                    # TODO: try to find a type now?
-                    key: graphene.Field(graphene.String)
-                    for key in elem.attrib.keys()
-                }
+                fields = {"hardcoded2": graphene.String()}
+                # fields = {
+                #     # TODO: try to find a type now?
+                #     key: graphene.Field(graphene.String)
+                #     for key in elem.attrib.keys()
+                # }
             hardcoded = graphene.String()
 
-        print(f"meta = {elemtype._meta}")
-        print(f"meta fields = {elemtype._meta.fields}")
+        print(f"elemtype._meta = {elemtype._meta}")
 
         return elemtype
