@@ -18,18 +18,22 @@ def query(field, querystr, elem):
     return graphql_sync(schema, querystr, elem)
 
 
-def test_gen_string_text():
+def test_string_text():
     e = etree.fromstring(r"<hello>textchild</hello>")
     field = gen_field(e)
     res = query(field, " { f }", e)
-    print(res)
     assert res.data["f"] == "textchild"
 
 
-def test_gen_attr_no_child():
+def test_attr_no_child():
     e = etree.fromstring(r'<hello answer="42" to="world"/>')
     field = gen_field(e)
     res = query(field, " { f { answer, to } }", e)
-    print(res)
     assert res.data["f"] == {"answer": "42", "to": "world"}
 
+
+def test_children():
+    e = etree.fromstring(r'<hello><child>text</child></hello>')
+    field = gen_field(e)
+    res = query(field, " { f { child } }", e)
+    assert res.data["f"] == {"child": "text"}
