@@ -13,6 +13,7 @@ flake8 = "*"
 black = "*"
 
 [packages]
+graphene = "*"
 
 [requires]
 python_version = "3.7"

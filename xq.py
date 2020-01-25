@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, MutableSequence, Mapping
 
 import filters
+import gql
 
 
 @dataclass(frozen=True)
@@ -33,9 +34,11 @@ class StreamHandler(xml.sax.handler.ContentHandler):
 
 
 def xq():
-    parser = xml.sax.make_parser()
-    parser.setContentHandler(StreamHandler(sys.argv[1]))
-    parser.parse(sys.stdin)
+    print(gql.schema)
+    print(gql.schema.execute(sys.argv[1]))
+    # parser = xml.sax.make_parser()
+    # parser.setContentHandler(StreamHandler(sys.argv[1]))
+    # parser.parse(sys.stdin)
 
 
 if __name__ == "__main__":
