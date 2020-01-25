@@ -1,24 +1,33 @@
 #!/usr/bin/env python3
-import graphene
 from lxml import etree
+from graphql import (
+    graphql_sync,
+    GraphQLSchema,
+    GraphQLObjectType,
+    GraphQLField,
+    GraphQLString,
+)
+from graphql.utilities.schema_printer import print_schema
 
 from schema_gen import gen_field
 
 
-# def test_gen_string_text():
-#     e = etree.fromstring(r"<hello>textchild</hello>")
-#     field = gen_field(e)
-#     assert field == graphene.Scalar()
+def query(field, querystr, elem):
+    schema = GraphQLSchema(query=GraphQLObjectType(name="Query", fields={"f": field},),)
+    print(print_schema(schema))
+    return graphql_sync(schema, querystr, elem)
+
+
+def test_gen_string_text():
+    e = etree.fromstring(r"<hello>textchild</hello>")
+    field = gen_field(e)
+    res = query(field, " { f }", e)
+    assert res.data["f"] == "textchild"
 
 
 def test_gen_attr_no_child():
     e = etree.fromstring(r'<hello answer="42"/>')
     field = gen_field(e)
-    # TODO: figure out how to properly introspect this
-
-    # class Query(graphene.ObjectType):
-    #     root = graphene.Field(field)
-
-    # schema = graphene.Schema(query=Query)
-    # print(schema.execute("{ root { answer } }"))
-    # print(schema)
+    res = query(field, " { f { answer } }", e)
+    print(res)
+    assert res.data["f"]["answer"] == 42
