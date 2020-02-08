@@ -4,13 +4,10 @@ use serde_json::value::Value;
 use serde_json::value::Value::{Array, Null, Object, String};
 
 fn resolve(field: &Field, data: &Value) -> Value {
-    let dst_name = match &field.alias {
-        Some(a) => a,
-        None => &field.name,
-    };
     if !field.arguments.is_empty() {
         panic!("Cannot extract field with arguments yet");
     }
+    println!("resolving {:?} with {:?}", data, field);
     let val = match data.get(field.name.clone()) {
         Some(v) => v,
         None => &json!(null),
@@ -39,15 +36,15 @@ fn resolve(field: &Field, data: &Value) -> Value {
             }
             json!(res_obj)
         }
-        // Array(arr) => {
-        //     // let mut res: Vec<Value> = Vec::new();
-        //     let mut items = vec![];
-        //     for elem in arr {
-        //         let val = extract_selection_set(&f.selection_set, elem);
-        //         items.push(val);
-        //     }
-        //     res.insert(dst_name.to_string(), items.into());
-        // }
+        Array(arr) => {
+            // let mut res: Vec<Value> = Vec::new();
+            let mut items = vec![];
+            for elem in arr {
+                println!("resolving object in array {:?}", elem);
+                items.push(resolve(&field, &elem));
+            }
+            json!(items)
+        }
         // Null => {
         //     res.insert(dst_name.to_string(), json!(null));
         // }

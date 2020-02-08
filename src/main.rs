@@ -7,7 +7,7 @@ fn main() {
     let json_root = &serde_json::from_str(std::include_str!("example.json")).unwrap();
 
     // let ast = parse_query("query { books { author } }").unwrap();
-    let ast = parse_query("query { top_level, not_a_field}").unwrap();
+    let ast = parse_query("query { top_level, books { author }}").unwrap();
     if ast.definitions.len() != 1 {
         panic!("Must have exactly 1 definition");
     }
