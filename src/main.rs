@@ -1,28 +1,56 @@
 use graphql_parser::parse_query;
+use graphql_parser::query::Query;
 use graphql_parser::query::{Definition, OperationDefinition, Selection};
+use serde_json::json;
+use serde_json::value::Value;
 
 fn main() {
-    println!("Hello, world!");
-    let ast = parse_query("query { root1, root2 { nested1 }, aliased: root3 }").unwrap();
+    // let doc = roxmltree::Document::parse(std::include_str!("example.xml")).unwrap();
+    // let xml_root = doc.root_element();
+    let json_root = serde_json::from_str(std::include_str!("example.json")).unwrap();
+
+    // let ast = parse_query("query { books { author } }").unwrap();
+    let ast = parse_query("query { top_level }").unwrap();
     if ast.definitions.len() != 1 {
         panic!("Must have exactly 1 definition");
     }
-    let root = &ast.definitions[0];
-    match root {
+    let query_root = &ast.definitions[0];
+    match query_root {
         Definition::Operation(OperationDefinition::Query(q)) => {
-            for sel in &q.selection_set.items {
-                match sel {
-                    Selection::Field(f) => {
-                        println!("Selecting field {}", f.name);
-                    }
-                    _ => {
-                        panic!("Unsupported root: {:?}", root);
-                    }
-                }
-            }
+            eval_query(q, json_root);
         }
         _ => {
-            panic!("Unsupported root: {:?}", root);
+            panic!("Unsupported root: {:?}", query_root);
         }
     }
+}
+
+fn eval_query(q: &Query, data: Value) -> Value {
+    let mut res = serde_json::map::Map::new();
+    for sel in &q.selection_set.items {
+        match sel {
+            Selection::Field(f) => {
+                let dst_name = match &f.alias {
+                    Some(a) => a,
+                    None => &f.name,
+                };
+                println!("Selecting field {} as {}", f.name, dst_name);
+                let val = data.get(f.name.clone());
+                match val {
+                    Some(v) => {
+                        res.insert(dst_name.to_string(), "value".into());
+                        println!("  {}", v);
+                    },
+                    None => {
+                        // res.insert(dst_name, json!(null));
+                        println!("  None");
+                    }
+                };
+            }
+            _ => {
+                panic!("Unsupported selection type: {:?}", sel);
+            }
+        }
+    }
+    json!(res)
 }
