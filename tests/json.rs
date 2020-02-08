@@ -42,3 +42,19 @@ fn multiple_top_level_keys() {
     let res = eval(&query, src);
     assert_eq!(res, json!({"top_level": "hello", "secondary": "world"}));
 }
+
+#[test]
+fn integer_value_key() {
+    let src = json!({"top_level": 42});
+    let query = parse_query("query { top_level }");
+    let res = eval(&query, src);
+    assert_eq!(res, json!({"top_level": 42}));
+}
+
+#[test]
+fn nested_key() {
+    let src = json!({"top_level": {"inner": "Hello world", "ignore": "Don't look at me"}});
+    let query = parse_query("query { top_level { inner } }");
+    let res = eval(&query, src);
+    assert_eq!(res, json!({"top_level": {"inner": "Hello world"}}));
+}
