@@ -15,7 +15,7 @@ fn main() {
     match query_root {
         Definition::Operation(OperationDefinition::Query(q)) => {
             let res = xq::eval(q, json_root);
-            println!("{}", res.to_string())
+            println!("{}", serde_json::to_string_pretty(&res).unwrap());
         }
         _ => {
             panic!("Unsupported root: {:?}", query_root);
