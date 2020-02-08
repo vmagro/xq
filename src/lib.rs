@@ -27,8 +27,7 @@ pub fn xml_to_json(elem: roxmltree::Node) -> Value {
                 for child in elem.children() {
                     let tag = child.tag_name().name();
                     if !children.contains_key(tag) {
-                        let mut empty = Vec::new();
-                        children.insert(tag, empty);
+                        children.insert(tag, vec![]);
                     }
                     let c = children.get_mut(tag).unwrap();
                     c.push(xml_to_json(child));
