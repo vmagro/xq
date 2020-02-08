@@ -68,6 +68,14 @@ fn aliased_field() {
 }
 
 #[test]
+fn list_of_objects() {
+    let src = json!({"heroes": [{"name": "Luke Skywalker"}, {"title": "Han Solo"}]});
+    let query = parse_query("query { heroes { name } }");
+    let res = eval(&query, &src);
+    assert_eq!(res, json!({"heroes": [{"name": "Luke Skywalker"}, {"title": "Han Solo"}]}));
+}
+
+#[test]
 #[should_panic]
 fn field_with_arguments_crashes() {
     let src = json!({"top_level": {"inner": "Hello world", "ignore": "Don't look at me"}});
