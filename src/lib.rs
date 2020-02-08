@@ -1,34 +1,22 @@
 use graphql_parser::query::{Field, Query, Selection, SelectionSet};
 use serde_json::json;
 use serde_json::value::Value;
-use serde_json::value::Value::{Array, Null, Object, String};
+use serde_json::value::Value::{Array, Object};
 
-fn resolve(field: &Field, data: &Value) -> Value {
-    if !field.arguments.is_empty() {
-        panic!("Cannot extract field with arguments yet");
-    }
-    println!("resolving {:?} with {:?}", data, field);
-    let val = match data.get(field.name.clone()) {
-        Some(v) => v,
-        None => &json!(null),
-    };
-    match val {
-        Object(obj) => {
+fn resolve_selset(selection_set: &SelectionSet, data: &Value) -> Value {
+    match data {
+        Object(_) => {
             let mut res_obj = serde_json::map::Map::new();
-            for sel in &field.selection_set.items {
+            for sel in &selection_set.items {
                 match sel {
                     Selection::Field(f) => {
-                        let field_val = obj.get(&f.name);
                         let dst_name = match &f.alias {
                             Some(a) => a,
                             None => &f.name,
                         };
                         res_obj.insert(
                             dst_name.clone(),
-                            match field_val {
-                                Some(v) => resolve(&f, v),
-                                None => json!(null),
-                            },
+                            resolve_field(&f, data),
                         );
                     }
                     _ => panic!("Cannot process a selection that is not a field"),
@@ -41,42 +29,27 @@ fn resolve(field: &Field, data: &Value) -> Value {
             let mut items = vec![];
             for elem in arr {
                 println!("resolving object in array {:?}", elem);
-                items.push(resolve(&field, &elem));
+                items.push(resolve_selset(selection_set, &elem));
             }
             json!(items)
         }
-        // Null => {
-        //     res.insert(dst_name.to_string(), json!(null));
-        // }
-        // String(s) => {
-        //     res.insert(dst_name.to_string(), json!(null));
-        // },
         _ => {
-            val.clone()
-            // res.insert(dst_name.to_string(), val.clone());
+            data.clone()
         }
     }
 }
 
-fn extract_selection_set(sel: &SelectionSet, data: &Value) -> Value {
-    let mut res = serde_json::map::Map::new();
-    for sel in &sel.items {
-        match sel {
-            Selection::Field(f) => {
-                let dst_name = match &f.alias {
-                    Some(a) => a,
-                    None => &f.name,
-                };
-                res.insert(dst_name.to_string(), resolve(&f, data));
-            }
-            _ => {
-                panic!("Unsupported selection type: {:?}", sel);
-            }
-        }
+fn resolve_field(field: &Field, data: &Value) -> Value {
+    if !field.arguments.is_empty() {
+        panic!("Cannot extract field with arguments yet");
     }
-    json!(res)
+    let val = match data.get(field.name.clone()) {
+        Some(v) => v,
+        None => &json!(null),
+    };
+    resolve_selset(&field.selection_set, val)
 }
 
 pub fn eval(q: &Query, data: &Value) -> Value {
-    return extract_selection_set(&q.selection_set, data);
+    return resolve_selset(&q.selection_set, data);
 }

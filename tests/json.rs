@@ -69,10 +69,10 @@ fn aliased_field() {
 
 #[test]
 fn list_of_objects() {
-    let src = json!({"heroes": [{"name": "Luke Skywalker", "height": 1.72}, {"title": "Han Solo"}]});
+    let src = json!({"heroes": [{"name": "Luke Skywalker", "height": 1.72}, {"name": "Han Solo"}]});
     let query = parse_query("query { heroes { name } }");
     let res = eval(&query, &src);
-    assert_eq!(res, json!({"heroes": [{"name": "Luke Skywalker"}, {"title": "Han Solo"}]}));
+    assert_eq!(res, json!({"heroes": [{"name": "Luke Skywalker"}, {"name": "Han Solo"}]}));
 }
 
 #[test]
