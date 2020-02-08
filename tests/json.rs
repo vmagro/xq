@@ -60,6 +60,14 @@ fn nested_key() {
 }
 
 #[test]
+fn aliased_field() {
+    let src = json!({"top_level": "hello"});
+    let query = parse_query("query { alias_name: top_level }");
+    let res = eval(&query, &src);
+    assert_eq!(res, json!({"alias_name": "hello"}));
+}
+
+#[test]
 #[should_panic]
 fn field_with_arguments_crashes() {
     let src = json!({"top_level": {"inner": "Hello world", "ignore": "Don't look at me"}});
