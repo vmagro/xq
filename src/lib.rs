@@ -25,10 +25,8 @@ fn resolve_selset(selection_set: &SelectionSet, data: &Value) -> Value {
             json!(res_obj)
         }
         Array(arr) => {
-            // let mut res: Vec<Value> = Vec::new();
             let mut items = vec![];
             for elem in arr {
-                println!("resolving object in array {:?}", elem);
                 items.push(resolve_selset(selection_set, &elem));
             }
             json!(items)
