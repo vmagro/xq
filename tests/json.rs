@@ -58,3 +58,12 @@ fn nested_key() {
     let res = eval(&query, &src);
     assert_eq!(res, json!({"top_level": {"inner": "Hello world"}}));
 }
+
+#[test]
+#[should_panic]
+fn field_with_arguments_crashes() {
+    let src = json!({"top_level": {"inner": "Hello world", "ignore": "Don't look at me"}});
+    let query = parse_query("query { top_level(with_arg: true) { inner } }");
+    let res = eval(&query, &src);
+    assert_eq!(res, json!({"top_level": {"inner": "Hello world"}}));
+}

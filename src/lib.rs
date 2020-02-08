@@ -13,6 +13,9 @@ fn extract_selection_set(sel: &SelectionSet, data: &Value) -> Value {
                     None => &f.name,
                 };
                 println!("Selecting field {} as {}", f.name, dst_name);
+                if !f.arguments.is_empty() {
+                    panic!("Cannot extract field with arguments yet");
+                }
                 let val = match data.get(f.name.clone()) {
                     Some(v) => v,
                     None => &json!(null),
