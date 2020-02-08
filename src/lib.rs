@@ -7,47 +7,35 @@ use serde_json::value::Value;
 use serde_json::value::Value::{Array, Object};
 
 pub fn xml_to_json(elem: roxmltree::Node) -> Value {
-    match elem.text() {
-        Some(text) => {
-            // check if there are attributes
-            if !elem.attributes().is_empty() {
-                let mut map = serde_json::Map::new();
-                for attrib in elem.attributes() {
-                    map.insert(format!("@{}", attrib.name()), json!(attrib.value()));
-                }
-                map.insert("text".to_string(), json!(text));
-                json!(map)
-            } else {
-                json!(text)
-            }
+    let mut children = HashMap::new();
+    for child in elem.children() {
+        let tag = child.tag_name().name();
+        if !children.contains_key(tag) {
+            children.insert(tag, vec![]);
         }
-        None => {
-            if elem.has_children() {
-                let mut children = HashMap::new();
-                for child in elem.children() {
-                    let tag = child.tag_name().name();
-                    if !children.contains_key(tag) {
-                        children.insert(tag, vec![]);
-                    }
-                    let c = children.get_mut(tag).unwrap();
-                    c.push(xml_to_json(child));
-                }
-                let mut obj = serde_json::Map::new();
-                for (key, val) in children {
-                    // uniquely tagged children get converted to direct properties
-                    // children that have more than one
-                    if val.len() == 1 {
-                        obj.insert(key.to_string(), val[0].clone());
-                    } else {
-                        obj.insert(to_plural(key), Value::Array(val));
-                    }
-                }
-                return json!(obj);
-            }
-            panic!("element has no children or text");
-            // json!(null)
+        let c = children.get_mut(tag).unwrap();
+        c.push(xml_to_json(child));
+    }
+    let mut obj = serde_json::Map::new();
+    for (key, val) in children {
+        // uniquely tagged children get converted to direct properties
+        // children that have more than one
+        if val.len() == 1 {
+            obj.insert(key.to_string(), val[0].clone());
+        } else {
+            obj.insert(to_plural(key), Value::Array(val));
         }
     }
+    for attrib in elem.attributes() {
+        obj.insert(format!("@{}", attrib.name()), json!(attrib.value()));
+    }
+    match elem.text() {
+        Some(text) => {
+            obj.insert("text".to_string(), json!(text));
+        },
+        None => (),
+    };
+    return json!(obj);
 }
 
 fn resolve_selset(selection_set: &SelectionSet, data: &Value) -> Value {

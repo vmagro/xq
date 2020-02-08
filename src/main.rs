@@ -17,6 +17,7 @@ fn main() {
         root = json;
     } else if let Ok(doc) = doc {
         root = xq::xml_to_json(doc.root_element());
+        println!("{}", serde_json::to_string_pretty(&root).unwrap());
     } else {
         panic!("Input is neither valid JSON nor XML");
     }
