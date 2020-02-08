@@ -1,21 +1,13 @@
 #!/usr/bin/env python3
 from lxml import etree
-from graphql import (
-    graphql_sync,
-    GraphQLSchema,
-    GraphQLObjectType,
-    GraphQLField,
-    GraphQLString,
-)
+from graphql import graphql_sync, GraphQLSchema, GraphQLObjectType
 from graphql.utilities.schema_printer import print_schema
 
 from schema_gen import gen_field
 
 
 def query(field, querystr, elem):
-    schema = GraphQLSchema(
-        query=GraphQLObjectType(name="Query", fields={"f": field})
-    )
+    schema = GraphQLSchema(query=GraphQLObjectType(name="Query", fields={"f": field}))
     print(print_schema(schema))
     return graphql_sync(schema, querystr, elem)
 
@@ -35,9 +27,14 @@ def test_attr_no_child():
 
 
 def test_text_children():
-    e = etree.fromstring(
-        r"<hello><child>text</child><other>blah</other></hello>"
-    )
+    e = etree.fromstring(r"<hello><child>text</child><other>blah</other></hello>")
+    field = gen_field(e)
+    res = query(field, " { f { child, other } }", e)
+    assert res.data["f"] == {"child": "text", "other": "blah"}
+
+
+def test_nested_children():
+    e = etree.fromstring(r"<root><outer><inner>innertext</inner></outer></root>")
     field = gen_field(e)
     res = query(field, " { f { child, other } }", e)
     assert res.data["f"] == {"child": "text", "other": "blah"}

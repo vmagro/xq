@@ -9,53 +9,27 @@ from graphql import (
     GraphQLField,
     GraphQLString,
 )
+from lxml import etree
 
 import filters
 import gql
 import strawberry
 from graphql.utilities.schema_printer import print_schema
+from graphql import graphql_sync, GraphQLSchema, GraphQLObjectType
 
 
-@dataclass(frozen=True)
-class elem(object):
-    tag: str
-    attrs: Mapping[str, Any]
-
-
-@dataclass
-class StreamHandler(xml.sax.handler.ContentHandler):
-    src: str
-    elem_stack: MutableSequence[str] = field(default_factory=list)
-
-    def startElement(self, name, attrs):
-        self.elem_stack.append(name)
-        attrs = {k: v for k, v in attrs.items()}
-        e = elem(name, attrs)
-        print(f"start element {name} {attrs}")
-        f = eval(self.src, {k: getattr(filters, k) for k in dir(filters)})
-        res = f(e)
-        print(f"filter returned {res}")
-
-    def endElement(self, name):
-        self.elem_stack.pop()
-        print(f"end element {name}")
+from schema_gen import gen_field
 
 
 def xq():
     # print(gql.schema)
     # print(gql.schema.execute(sys.argv[1]))
 
-    schema = GraphQLSchema(
-        query=GraphQLObjectType(
-            name="Query",
-            fields={
-                "hello": GraphQLField(
-                    GraphQLString, resolve=lambda obj, info: "world"
-                )
-            },
-        )
-    )
-    print(schema)
+    root = etree.parse(sys.stdin).getroot()
+    query = sys.argv[1]
+    root_field = gen_field(root)
+
+    schema = GraphQLSchema(query=root_field)
     print(print_schema(schema))
 
     # @strawberry.type

@@ -9,7 +9,7 @@ def gen_field(elem: etree.Element) -> GraphQLField:
     # if there are no children and no attributes, return the text node as a
     # simple scalar type
     if not len(elem) and not elem.attrib:
-        print("No children and no attributes")
+        print(f"No children and no attributes on {elem.tag}")
         # it might be a string, int, float or bool and will be disambiguated
         # later by the resolver
         # return GraphQLField(GraphQLString, resolve=lambda e, _info: e.text)
@@ -43,14 +43,11 @@ def gen_field(elem: etree.Element) -> GraphQLField:
 
         return GraphQLField(GraphQLString, resolve=_resolver)
 
-    return GraphQLField(
-        GraphQLObjectType(
-            name=elem.tag,
-            fields={
-                # child.tag: gen_field(child) for child in elem
-                child.tag: child_resolver(child.tag)
-                for child in elem
-            },
-        ),
-        resolve=lambda e, _: e,
+    return GraphQLObjectType(
+        name=elem.tag,
+        fields={
+            # child.tag: gen_field(child) for child in elem
+            child.tag: gen_field(child)
+            for child in elem
+        },
     )
