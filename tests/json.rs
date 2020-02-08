@@ -34,3 +34,11 @@ fn single_top_level_key() {
     let res = eval(&query, src);
     assert_eq!(res, json!({"top_level": "hello"}));
 }
+
+#[test]
+fn multiple_top_level_keys() {
+    let src = json!({"top_level": "hello", "secondary": "world"});
+    let query = parse_query("query { top_level, secondary }");
+    let res = eval(&query, src);
+    assert_eq!(res, json!({"top_level": "hello", "secondary": "world"}));
+}
