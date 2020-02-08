@@ -24,8 +24,13 @@ fn eval_missing_key() {
     let src = json!({});
     let query = parse_query("query { no_such_key }");
     let res = eval(&query, src);
-    assert!(res.is_object());
-    let obj = res.as_object().unwrap();
-    assert!(obj.contains_key("no_such_key"));
-    assert_eq!(obj.get("no_such_key").unwrap(), &json!(null));
+    assert_eq!(res, json!({"no_such_key": null}));
+}
+
+#[test]
+fn single_top_level_key() {
+    let src = json!({"top_level": "hello"});
+    let query = parse_query("query { top_level }");
+    let res = eval(&query, src);
+    assert_eq!(res, json!({"top_level": "hello"}));
 }
