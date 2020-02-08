@@ -9,6 +9,9 @@ use serde_json::value::Value::{Array, Object};
 pub fn xml_to_json(elem: roxmltree::Node) -> Value {
     let mut children = HashMap::new();
     for child in elem.children() {
+        if child.is_text() {
+            continue;
+        }
         let tag = child.tag_name().name();
         if !children.contains_key(tag) {
             children.insert(tag, vec![]);
@@ -17,22 +20,29 @@ pub fn xml_to_json(elem: roxmltree::Node) -> Value {
         c.push(xml_to_json(child));
     }
     let mut obj = serde_json::Map::new();
-    for (key, val) in children {
+    for (key, val) in &children {
         // uniquely tagged children get converted to direct properties
         // children that have more than one
         if val.len() == 1 {
             obj.insert(key.to_string(), val[0].clone());
         } else {
-            obj.insert(to_plural(key), Value::Array(val));
+            obj.insert(to_plural(key), Value::Array(val.to_vec()));
         }
     }
     for attrib in elem.attributes() {
         obj.insert(format!("@{}", attrib.name()), json!(attrib.value()));
     }
+    // handle otherwise-empty objects
+    if elem.attributes().is_empty() && children.is_empty() {
+        return match elem.text() {
+            Some(text) => json!(text),
+            None => json!(null),
+        };
+    }
     match elem.text() {
         Some(text) => {
             obj.insert("text".to_string(), json!(text));
-        },
+        }
         None => (),
     };
     return json!(obj);
