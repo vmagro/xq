@@ -19,8 +19,10 @@ fn extract_selection_set(sel: &SelectionSet, data: &Value) -> Value {
                 };
                 if !f.selection_set.items.is_empty() {
                     let val = extract_selection_set(&f.selection_set, val);
+                    res.insert(dst_name.to_string(), val);
+                } else {
+                    res.insert(dst_name.to_string(), val.clone());
                 }
-                        res.insert(dst_name.to_string(), val.clone());
             }
             _ => {
                 panic!("Unsupported selection type: {:?}", sel);
