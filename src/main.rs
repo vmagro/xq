@@ -10,14 +10,15 @@ fn main() {
     let json_root = serde_json::from_str(std::include_str!("example.json")).unwrap();
 
     // let ast = parse_query("query { books { author } }").unwrap();
-    let ast = parse_query("query { top_level }").unwrap();
+    let ast = parse_query("query { top_level, not_a_field}").unwrap();
     if ast.definitions.len() != 1 {
         panic!("Must have exactly 1 definition");
     }
     let query_root = &ast.definitions[0];
     match query_root {
         Definition::Operation(OperationDefinition::Query(q)) => {
-            eval_query(q, json_root);
+            let res = eval_query(q, json_root);
+            println!("{}", res.to_string())
         }
         _ => {
             panic!("Unsupported root: {:?}", query_root);
@@ -38,12 +39,10 @@ fn eval_query(q: &Query, data: Value) -> Value {
                 let val = data.get(f.name.clone());
                 match val {
                     Some(v) => {
-                        res.insert(dst_name.to_string(), "value".into());
-                        println!("  {}", v);
-                    },
+                        res.insert(dst_name.to_string(), v.clone());
+                    }
                     None => {
-                        // res.insert(dst_name, json!(null));
-                        println!("  None");
+                        res.insert(dst_name.to_string(), json!(null));
                     }
                 };
             }
