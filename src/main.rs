@@ -1,8 +1,5 @@
 use graphql_parser::parse_query;
-use graphql_parser::query::Query;
-use graphql_parser::query::{Definition, OperationDefinition, Selection};
-use serde_json::json;
-use serde_json::value::Value;
+use graphql_parser::query::{Definition, OperationDefinition};
 
 fn main() {
     // let doc = roxmltree::Document::parse(std::include_str!("example.xml")).unwrap();
@@ -17,39 +14,11 @@ fn main() {
     let query_root = &ast.definitions[0];
     match query_root {
         Definition::Operation(OperationDefinition::Query(q)) => {
-            let res = eval_query(q, json_root);
+            let res = xq::eval(q, json_root);
             println!("{}", res.to_string())
         }
         _ => {
             panic!("Unsupported root: {:?}", query_root);
         }
     }
-}
-
-fn eval_query(q: &Query, data: Value) -> Value {
-    let mut res = serde_json::map::Map::new();
-    for sel in &q.selection_set.items {
-        match sel {
-            Selection::Field(f) => {
-                let dst_name = match &f.alias {
-                    Some(a) => a,
-                    None => &f.name,
-                };
-                println!("Selecting field {} as {}", f.name, dst_name);
-                let val = data.get(f.name.clone());
-                match val {
-                    Some(v) => {
-                        res.insert(dst_name.to_string(), v.clone());
-                    }
-                    None => {
-                        res.insert(dst_name.to_string(), json!(null));
-                    }
-                };
-            }
-            _ => {
-                panic!("Unsupported selection type: {:?}", sel);
-            }
-        }
-    }
-    json!(res)
 }
