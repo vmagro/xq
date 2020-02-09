@@ -12,12 +12,12 @@ pub fn xml_to_json(elem: roxmltree::Node) -> Value {
         if child.is_text() {
             continue;
         }
-        let tag = child.tag_name().name();
-        if !children.contains_key(tag) {
-            children.insert(tag, vec![]);
-        }
-        let c = children.get_mut(tag).unwrap();
-        c.push(xml_to_json(child));
+        let tag = match child.tag_name().namespace() {
+            Some(ns) => format!("{}:{}", ns, child.tag_name().name()),
+            None => child.tag_name().name().to_string(),
+        };
+        let json_child = xml_to_json(child);
+        children.entry(tag).and_modify(|v: &mut Vec<Value>| { v.push(xml_to_json(child)) }).or_insert(vec![json_child]);
     }
     let mut obj = serde_json::Map::new();
     for (key, val) in &children {
