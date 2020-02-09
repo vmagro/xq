@@ -13,7 +13,8 @@ pub fn xml_to_json(elem: roxmltree::Node) -> Value {
             continue;
         }
         let tag = match child.tag_name().namespace() {
-            Some(ns) => format!("{}:{}", ns, child.tag_name().name()),
+            // Some(ns) => format!("{}:{}", ns, child.tag_name().name()),
+            Some(_) => child.tag_name().name().to_string(),
             None => child.tag_name().name().to_string(),
         };
         let json_child = xml_to_json(child);
