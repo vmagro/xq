@@ -8,8 +8,6 @@ edition = "2018"
 name = "xq"
 path = "src/lib.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 graphql-parser = "0.2.3"
 Inflector = "0.11.4"
